@@ -65,4 +65,4 @@ Com V vértices, E arestas e B pontes, a DFS custa O(V+E); ordenar a saída cust
 - Ricardo Carubbi: A2_Tipos_Representação_Computacional_ (representação), A3_BFS_DFS (marked, edgeTo e DepthFirstPaths) e A4_Conectividade (componentes e CC).
 - [Graph](https://algs4.cs.princeton.edu/41graph/Graph.java.html), [DepthFirstPaths](https://algs4.cs.princeton.edu/41graph/DepthFirstPaths.java.html) e [CC](https://algs4.cs.princeton.edu/41graph/CC.java.html), de Sedgewick e Wayne.
 
-O desenvolvimento do Marco 4 permanece separado e pendente.
+Este marco preserva o planejamento original. A implementação final e a justificativa da troca da recursão por pilha explícita estão no [Marco 4](marco-4.md).

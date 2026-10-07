@@ -1,8 +1,9 @@
 T2 — UVA 796 Critical Links
 
 Catálogo de entradas e saídas esperadas por análise manual.
-Não são resultados de execução nem evidências de Accepted.
-Copiar somente a entrada de cada caso para uma futura execução.
+A validação local confirmou essas saídas; ver testes/resultado-local.md.
+Não constitui evidência de Accepted.
+Copiar somente a entrada de cada caso ou usar dados/entrada.txt.
 Cada bloco de saída deve terminar com uma linha em branco.
 
 CASO 1 — Grafo preservado dos Marcos 1, 2 e 3

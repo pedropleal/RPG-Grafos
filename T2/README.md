@@ -4,7 +4,7 @@
 
 Identificar as pontes de uma rede não direcionada: arestas cuja remoção aumenta o número de componentes conexas. O trabalho mantém o exemplo `0–1–3` com o triângulo `3–2–4–3` e a estratégia de DFS com tempos de descoberta e valores low.
 
-Os Marcos 1, 2 e 3 estão organizados como documentação de modelagem, representação e estratégia. O [Marco 4](acompanhamento/marco-4.md) permanece **pendente de elaboração**. Não há implementação de T2, execução de solução, submissão Accepted ou evidência de aceite nesta entrega.
+Os Marcos 1, 2 e 3 registram a modelagem, a representação e a estratégia planejada. O [Marco 4](acompanhamento/marco-4.md) documenta a implementação final, suas adaptações e os testes locais. A solução em Java e a apresentação estão disponíveis. A submissão ao UVA e a evidência de Accepted permanecem pendentes.
 
 ## Integrantes
 
@@ -19,9 +19,27 @@ Mantidos do registro do T1 neste repositório:
 
 ## Execução
 
-**Pendente de implementação.** A pasta `src/` ainda não contém um programa executável. Os comandos de compilação e execução serão registrados e verificados quando o código real estiver disponível.
+A solução está em [src/Main.java](src/Main.java), sem dependências externas. Requer um JDK. A partir da pasta `T2`, compilar:
 
-A futura solução deverá ler da entrada padrão os casos no formato do UVA 796 até o fim da entrada e escrever na saída padrão. O arquivo de casos é um catálogo com rótulos e resultados esperados; somente seus blocos de entrada deverão ser fornecidos ao programa.
+```text
+javac -encoding UTF-8 -d build src/Main.java
+```
+
+Em bash ou cmd, executar:
+
+```text
+java -cp build Main < dados/entrada.txt
+```
+
+Em PowerShell:
+
+```powershell
+Get-Content dados/entrada.txt | java -cp build Main
+```
+
+O programa lê casos até EOF e escreve na saída padrão. [entrada.txt](dados/entrada.txt) contém somente dados de entrada; [saida-esperada.txt](dados/saida-esperada.txt) contém o resultado completo. O catálogo comentado continua disponível em [casos-de-teste.txt](dados/casos-de-teste.txt).
+
+Para repetir os testes com Python 3 e JDK 9+ no PATH: `python testes/validar.py`. O script usa `--release 8`; a execução local foi realizada no JDK 25.0.1. Python serve somente como ferramenta de teste.
 
 ## Modelagem
 
@@ -50,9 +68,9 @@ Na árvore DFS, uma aresta de pai v para filho w é ponte quando **low[w] > disc
 
 ## Algoritmo
 
-A estratégia prevista é DFS recursiva com `marked`, `parent`/`edgeTo`, `disc`, `low`, contador de descobertas e lista de pontes. Após explorar um filho, seu valor low é propagado ao pai e o critério de ponte é verificado. Uma nova DFS começa em cada vértice ainda não visitado para cobrir todas as componentes.
+A implementação usa DFS com `marked`, `parent`, `disc`, `low`, contador de descobertas e lista de pontes. A pilha explícita `stack` e o índice `nextNeighbor` simulam as chamadas e os retornos da recursão prevista no Marco 3, evitando estouro da pilha de chamadas em caminhos longos. Ao finalizar um filho, seu low é propagado ao pai e o critério de ponte é verificado. Uma nova DFS começa em cada vértice ainda não visitado para cobrir todas as componentes.
 
-Os pares encontrados serão normalizados com o menor extremo primeiro e ordenados lexicograficamente. O [Marco 3](acompanhamento/marco-3.md) registra as estruturas e o rastreamento manual do exemplo.
+Os pares encontrados são normalizados com o menor extremo primeiro e ordenados lexicograficamente. O [Marco 3](acompanhamento/marco-3.md) registra as estruturas e o rastreamento manual do exemplo.
 
 ## Implementação de referência
 
@@ -62,27 +80,28 @@ Os pares encontrados serão normalizados com o menor extremo primeiro e ordenado
 | DepthFirstPaths — A3 | Busca recursiva, marcação e registro dos pais |
 | CC — A4 | Percorrer todas as componentes iniciando buscas nos vértices não marcados |
 
-Essas classes são referências para estudo e adaptação; não constituem uma solução pronta para Critical Links. `disc`, `low` e o teste de ponte são a extensão prevista pelo grupo, não atribuída às implementações das aulas.
+Essas classes orientaram a adaptação conceitual, sem cópia integral nem importação de algs4. `Main.Graph` representa as adjacências; `BridgeFinder` adapta a DFS e o laço de cobertura de componentes. `FastInput` e a formatação atendem ao UVA. `disc`, `low` e o teste de ponte são a extensão para o problema, não atribuída às implementações das aulas.
 
-As implementações de referência da disciplina poderão ser utilizadas. **Não serão utilizadas bibliotecas externas nem funções que resolvam automaticamente o problema.** As referências do algs4 serão estudadas e adaptadas conforme o material da disciplina; não se prevê adicionar uma biblioteca externa como dependência da solução.
+A solução **não usa bibliotecas externas nem funções que resolvam automaticamente o problema**. As coleções, a leitura, a inicialização de vetores e a ordenação usam apenas a biblioteca padrão de Java. O código implementa explicitamente a busca e o teste de ponte.
 
 O grupo deverá compreender, rastrear, adaptar e explicar tanto a busca quanto o critério estrutural. A documentação e o rastreamento manual apoiam essa preparação, mas não comprovam por si só o domínio dos integrantes.
 
-## Alterações previstas em relação às referências
+## Alterações em relação às referências
 
-Ainda não há alterações de código implementadas. A adaptação planejada inclui:
+A adaptação implementada está detalhada no [Marco 4](acompanhamento/marco-4.md) e inclui:
 
 - interpretar linhas `u (k) ...`, processar múltiplos casos e reinicializar o estado a cada caso;
 - evitar duplicar arestas ao ler as listas bidirecionais;
 - acrescentar os tempos de descoberta, valores low e controle do pai à DFS;
 - identificar e armazenar pontes pelo critério low[filho] > disc[pai];
-- cobrir todas as componentes, ordenar os pares e imprimir o formato exigido.
+- cobrir todas as componentes, ordenar os pares e imprimir o formato exigido;
+- substituir a recursão por pilha explícita e registrar a identidade da aresta-pai.
 
 ## Justificativas
 
 A lista de adjacência permite armazenar e percorrer apenas as conexões presentes. A DFS organiza a exploração em subárvores; os valores low indicam se existe um retorno que preserve a conexão quando a aresta-pai é removida. Isso permite detectar pontes em uma passagem pelo grafo, sem remover cada aresta e repetir a busca. A cobertura de todas as componentes é necessária porque a entrada pode ser desconexa.
 
-## Complexidade prevista
+## Complexidade
 
 Considerando V vértices, E arestas e B pontes:
 
@@ -92,17 +111,17 @@ Considerando V vértices, E arestas e B pontes:
 | Ordenação dos pares de pontes | O(B log B) tempo |
 | Tempo total | O(V+E+B log B) |
 | Grafo | O(V+E) memória |
-| Vetores e pilha recursiva | O(V) memória |
+| Vetores e pilha explícita | O(V) memória |
 | Lista de pontes | O(B) memória |
 | Memória total | O(V+E) |
 
-São custos da estratégia planejada, não medições de uma implementação. A profundidade da recursão poderá chegar a V e deverá ser considerada na implementação em Java.
+São limites assintóticos da implementação. A pilha explícita ocupa até V posições e elimina a dependência da profundidade da pilha de chamadas da JVM.
 
 ## Casos especiais e validação
 
-O [catálogo de testes](dados/casos-de-teste.txt) contém o exemplo do grupo, um ciclo sem pontes, um caminho em que todas as arestas são pontes, componentes separadas com vértice isolado e linhas fora de ordem, e uma rede vazia seguida de outro caso. As saídas são esperadas por análise manual; a execução da solução está pendente.
+O [catálogo de testes](dados/casos-de-teste.txt) contém o exemplo do grupo, um ciclo sem pontes, um caminho em que todas as arestas são pontes, componentes separadas com vértice isolado e linhas fora de ordem, e uma rede vazia seguida de outro caso. A execução confirmou as saídas esperadas. Também passaram a amostra oficial, 1.100 grafos pequenos enumerados, 300 grafos aleatórios, entrada vazia, um caso com arestas paralelas e um caminho de 100.000 vértices. O [registro local](testes/resultado-local.md) informa o ambiente, o método independente de comparação e como repetir os testes.
 
-Cuidados previstos: n=0 não encerra a leitura; vértices isolados devem ser considerados; a ordem das linhas não determina o identificador do vértice; e cada caso deve terminar com uma linha em branco na saída. A entrada bidirecional não deve gerar arestas duplicadas. Caso o modelo seja ampliado para arestas paralelas, será necessário distinguir a identidade da aresta-pai, em vez de ignorar todas as conexões com o pai.
+Cuidados implementados: n=0 não encerra a leitura; vértices isolados devem ser considerados; a ordem das linhas não determina o identificador do vértice; e cada caso deve terminar com uma linha em branco na saída. A entrada bidirecional não deve gerar arestas duplicadas. A implementação distingue a identidade da aresta-pai, permitindo tratar ocorrências paralelas simétricas sem ignorar todas as conexões com o pai.
 
 ## Evidência do Accepted
 
@@ -119,30 +138,36 @@ T2/
 │   ├── marco-3.md
 │   └── marco-4.md
 ├── src/
-│   └── .gitkeep
+│   └── Main.java
 ├── evidencias/
 │   └── .gitkeep
 ├── apresentacao/
-│   └── .gitkeep
-└── dados/
-    └── casos-de-teste.txt
+│   ├── apresentacao.pptx
+│   └── apresentacao.pdf
+├── dados/
+│   ├── casos-de-teste.txt
+│   ├── entrada.txt
+│   └── saida-esperada.txt
+└── testes/
+    ├── validar.py
+    └── resultado-local.md
 ```
 
-Os arquivos `.gitkeep` apenas preservam as pastas no Git. `src/` aguarda o código real; `evidencias/`, uma evidência real de submissão; `apresentacao/`, a apresentação final. Não representam entregas concluídas.
+A pasta `evidencias/` permanece reservada para o resultado real do juiz. A apresentação tem 10 slides, em [PowerPoint editável](apresentacao/apresentacao.pptx) e [PDF](apresentacao/apresentacao.pdf). Os arquivos compilados ficam em `build/`, ignorado pelo Git.
 
 ## Acompanhamento
 
 - [Marco 1 — Modelagem](acompanhamento/marco-1.md)
 - [Marco 2 — Representação computacional](acompanhamento/marco-2.md)
 - [Marco 3 — Estruturas e estratégia de DFS](acompanhamento/marco-3.md)
-- [Marco 4 — Pendente](acompanhamento/marco-4.md)
-- [Casos de teste e resultados esperados](dados/casos-de-teste.txt): catálogo documental; copiar apenas os blocos de entrada ao testar futuramente.
+- [Marco 4 — Implementação final e conclusão](acompanhamento/marco-4.md)
+- [Casos de teste e resultados esperados](dados/casos-de-teste.txt): catálogo documental, acompanhado dos arquivos de entrada e saída para execução.
 
 ## Base da revisão
 
-Documentação consolidada a partir da conversa GRAFOS, do texto anterior do Marco 3 e dos materiais de Ricardo Carubbi: A2_Tipos_Representação_Computacional_, A3_BFS_DFS e A4_Conectividade. As decisões preservadas são lista de adjacência, DFS recursiva, cobertura de todas as componentes, referências `Graph`, `DepthFirstPaths` e `CC`, e adaptação com `disc`/`low` para pontes.
+Documentação consolidada a partir da conversa GRAFOS, do texto anterior do Marco 3 e dos materiais de Ricardo Carubbi: A2_Tipos_Representação_Computacional_, A3_BFS_DFS e A4_Conectividade. As decisões preservadas são lista de adjacência, DFS, cobertura de todas as componentes, referências `Graph`, `DepthFirstPaths` e `CC`, e adaptação com `disc`/`low` para pontes. O Marco 4 justifica a substituição da recursão planejada por pilha explícita.
 
-A revisão contou com apoio de IA para organização e conferência conceitual. Os resultados dos exemplos são esperados por análise do grafo, não resultados de uma solução submetida. Esta versão incorpora os itens exigidos para o README e as restrições de linguagem e implementação informados pelo grupo. Execução e Accepted permanecem pendentes; não se afirma conclusão da entrega nem aprovação pelo professor.
+O trabalho contou com apoio de IA para organização, implementação, testes e apresentação. Os resultados registrados são de validação local, não de submissão ao juiz. Os integrantes deverão revisar e compreender o código e suas adaptações. Esta versão incorpora os itens exigidos para o README e as restrições de linguagem e implementação informados pelo grupo. A implementação e os testes locais estão concluídos. Accepted permanece pendente; não se afirma aprovação pelo juiz nem pelo professor.
 
 ## Referências
 
