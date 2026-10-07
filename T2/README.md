@@ -4,7 +4,7 @@
 
 Identificar as pontes de uma rede não direcionada: arestas cuja remoção aumenta o número de componentes conexas. O trabalho mantém o exemplo `0–1–3` com o triângulo `3–2–4–3` e a estratégia de DFS com tempos de descoberta e valores low.
 
-Os Marcos 1, 2 e 3 registram a modelagem, a representação e a estratégia planejada. O [Marco 4](acompanhamento/marco-4.md) documenta a implementação final, suas adaptações e os testes locais. A solução em Java e a apresentação estão disponíveis. A submissão ao UVA e a evidência de Accepted permanecem pendentes.
+Os Marcos 1, 2 e 3 registram a modelagem, a representação e a estratégia planejada. O [Marco 4](acompanhamento/marco-4.md) explica por escrito as classes implementadas, os trechos principais do código, suas adaptações e os testes locais. A solução em Java e sua documentação estão disponíveis diretamente no GitHub. A submissão ao UVA e a evidência de Accepted permanecem pendentes.
 
 ## Integrantes
 
@@ -141,9 +141,6 @@ T2/
 │   └── Main.java
 ├── evidencias/
 │   └── .gitkeep
-├── apresentacao/
-│   ├── apresentacao.pptx
-│   └── apresentacao.pdf
 ├── dados/
 │   ├── casos-de-teste.txt
 │   ├── entrada.txt
@@ -153,7 +150,7 @@ T2/
     └── resultado-local.md
 ```
 
-A pasta `evidencias/` permanece reservada para o resultado real do juiz. A apresentação tem 10 slides, em [PowerPoint editável](apresentacao/apresentacao.pptx) e [PDF](apresentacao/apresentacao.pdf). Os arquivos compilados ficam em `build/`, ignorado pelo Git.
+A pasta `evidencias/` permanece reservada para o resultado real do juiz. A explicação dos códigos está no [Marco 4](acompanhamento/marco-4.md), junto da relação entre a implementação e as referências da disciplina. Os arquivos compilados ficam em `build/`, ignorado pelo Git.
 
 ## Acompanhamento
 
@@ -167,7 +164,7 @@ A pasta `evidencias/` permanece reservada para o resultado real do juiz. A apres
 
 Documentação consolidada a partir da conversa GRAFOS, do texto anterior do Marco 3 e dos materiais de Ricardo Carubbi: A2_Tipos_Representação_Computacional_, A3_BFS_DFS e A4_Conectividade. As decisões preservadas são lista de adjacência, DFS, cobertura de todas as componentes, referências `Graph`, `DepthFirstPaths` e `CC`, e adaptação com `disc`/`low` para pontes. O Marco 4 justifica a substituição da recursão planejada por pilha explícita.
 
-O trabalho contou com apoio de IA para organização, implementação, testes e apresentação. Os resultados registrados são de validação local, não de submissão ao juiz. Os integrantes deverão revisar e compreender o código e suas adaptações. Esta versão incorpora os itens exigidos para o README e as restrições de linguagem e implementação informados pelo grupo. A implementação e os testes locais estão concluídos. Accepted permanece pendente; não se afirma aprovação pelo juiz nem pelo professor.
+O trabalho contou com apoio de IA para organização, implementação, testes e documentação. Os resultados registrados são de validação local, não de submissão ao juiz. Os integrantes deverão revisar e compreender o código e suas adaptações. Esta versão incorpora os itens exigidos para o README e as restrições de linguagem e implementação informados pelo grupo. A implementação e os testes locais estão concluídos. Accepted permanece pendente; não se afirma aprovação pelo juiz nem pelo professor.
 
 ## Referências
 
