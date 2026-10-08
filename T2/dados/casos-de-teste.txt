@@ -1,0 +1,157 @@
+UVA 796 — Critical Links — Casos de teste
+
+Formato da entrada (cada caso):
+  n
+  u (k) v1 v2 ... vk      <- n linhas, uma por servidor (vértices de 0 a n-1)
+A entrada termina no fim do arquivo (EOF).
+
+Formato da saída (cada caso):
+  X critical links
+  a - b                   <- uma linha por ponte, com a < b, em ordem crescente
+  (linha em branco)
+
+Observação: cada saída termina com uma linha em branco, conforme exige o problema.
+
+
+CASO 1 — Exemplo do enunciado (dois casos na mesma entrada)
+
+Entrada:
+8
+0 (1) 1
+1 (3) 2 0 3
+2 (2) 1 3
+3 (3) 1 2 4
+4 (1) 3
+7 (1) 6
+6 (1) 7
+5 (0)
+
+0
+
+Saída esperada:
+3 critical links
+0 - 1
+3 - 4
+6 - 7
+
+0 critical links
+
+
+
+CASO 2 — Grafo sem vértices
+
+Entrada:
+0
+
+Saída esperada:
+0 critical links
+
+
+
+CASO 3 — Ciclo (triângulo): nenhuma aresta é ponte
+
+Entrada:
+3
+0 (2) 1 2
+1 (2) 0 2
+2 (2) 0 1
+
+Saída esperada:
+0 critical links
+
+
+
+CASO 4 — Caminho (árvore): todas as arestas são pontes
+
+Entrada:
+4
+0 (1) 1
+1 (2) 0 2
+2 (2) 1 3
+3 (1) 2
+
+Saída esperada:
+3 critical links
+0 - 1
+1 - 2
+2 - 3
+
+
+
+CASO 5 — Somente vértices isolados
+
+Entrada:
+3
+0 (0)
+1 (0)
+2 (0)
+
+Saída esperada:
+0 critical links
+
+
+
+CASO 6 — Dois ciclos ligados por uma única aresta
+
+Entrada:
+6
+0 (2) 1 2
+1 (2) 0 2
+2 (3) 0 1 3
+3 (3) 2 4 5
+4 (2) 3 5
+5 (2) 3 4
+
+Saída esperada:
+1 critical links
+2 - 3
+
+
+
+CASO 7 — Estrela com linhas fora de ordem (testa a ordenação e a regra a < b)
+
+Entrada:
+5
+4 (4) 3 1 0 2
+2 (1) 4
+0 (1) 4
+3 (1) 4
+1 (1) 4
+
+Saída esperada:
+4 critical links
+0 - 4
+1 - 4
+2 - 4
+3 - 4
+
+
+
+CASO 8 — Uma única aresta
+
+Entrada:
+2
+0 (1) 1
+1 (1) 0
+
+Saída esperada:
+1 critical links
+0 - 1
+
+
+
+CASO 9 — Exemplo de 5 vértices usado nos marcos
+
+Entrada:
+5
+0 (3) 1 2 3
+1 (2) 0 2
+2 (2) 0 1
+3 (2) 0 4
+4 (1) 3
+
+Saída esperada:
+2 critical links
+0 - 3
+3 - 4
+
