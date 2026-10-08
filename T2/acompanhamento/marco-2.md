@@ -1,4 +1,4 @@
-# Marco 2 — Representação Computacional
+# Marco 2 — Representação computacional
 
 **Problema:** UVA 796 — Critical Links
 
@@ -9,166 +9,79 @@
 
 ## Representação escolhida
 
-Para representar o grafo foi escolhida a **lista de adjacência**.
+Será usada lista de adjacência, preservando a decisão anterior. Ela armazena os vizinhos e permite percorrer o grafo em O(V+E), com memória O(V+E). Aqui V e E, nas expressões de custo, são as quantidades de vértices e arestas.
 
-Na implementação, ela é um vetor de listas:
+Para o [grafo do Marco 1](marco-1.md):
+
+```text
+Adj[0] = [1]
+Adj[1] = [0, 3]
+Adj[2] = [3, 4]
+Adj[3] = [1, 2, 4]
+Adj[4] = [2, 3]
+```
+
+A ordem crescente dos vizinhos serve para reproduzir o rastreamento manual. Não é uma exigência da DFS nem do formato de entrada.
+
+## Entrada correspondente
+
+```text
+5
+0 (1) 1
+1 (2) 0 3
+2 (2) 3 4
+3 (3) 1 2 4
+4 (2) 2 3
+```
+
+A leitura deverá interpretar o número entre parênteses e associar cada lista ao identificador da linha. Como as conexões aparecem nos dois sentidos, não se deve adicionar novamente os dois sentidos para cada ocorrência. Se for utilizado `Graph.addEdge(u,v)`, que insere ambos os sentidos, cada aresta não direcionada deverá ser inserida uma única vez; para este modelo simples, considerar apenas u<v é uma opção.
+
+## Medidas e conferência
+
+| Medida | Valor |
+|---|---|
+| Ordem | 5 vértices |
+| Tamanho | 5 arestas |
+| Graus de 0, 1, 2, 3, 4 | 1, 2, 2, 3, 2 |
+| Soma dos graus | 10 = 2 × 5 |
+| Grau mínimo / máximo / médio | 1 / 3 / 2 |
+| Densidade do grafo simples | 2E/(V(V−1)) = 0,5 |
+| Componentes conexas | 1 |
+
+As listas são simétricas e contêm dez entradas, correspondentes às cinco arestas. A representação preserva a cadeia 0–1–3 e o triângulo 3–2–4–3. A solução deverá também aceitar listas vazias e redes com várias componentes.
+
+## Representação na implementação final
+
+> Seção acrescentada após a implementação, para relacionar o planejamento acima com o [`Main.java`](../src/Main.java) final.
+
+A lista de adjacência é um vetor de listas:
 
 ```java
 static ArrayList<Integer>[] adj;
 ```
 
-onde `adj[v]` contém os vizinhos do vértice `v`.
+Cada linha `u (k) v1 ... vk` é lida assim: o texto `(k)` tem os parênteses removidos para obter `k`, e cada vizinho `w` é adicionado apenas em `adj[u]` (`adj[v].add(w)` no código). Como a entrada já lista cada conexão nas linhas das duas extremidades, as listas resultantes são simétricas sem duplicar entradas. Para a entrada acima, elas ficam exatamente como `Adj[0..4]` mostrado no início deste marco.
 
-A lista de adjacência foi escolhida porque armazena apenas as conexões existentes e permite percorrer os vizinhos de cada vértice de forma eficiente, que é exatamente a operação realizada pela DFS.
-
-## Leitura da entrada
-
-Para cada caso de teste, o programa:
-
-1. lê `n` e cria `n` listas vazias;
-2. lê, para cada servidor, a linha `u (k) v1 ... vk`;
-3. obtém `k` removendo os parênteses do texto `(k)`;
-4. adiciona cada vizinho `w` à lista `adj[u]`.
-
-Trecho correspondente:
-
-```java
-int v = sc.nextInt();
-String grau = sc.next();
-int k = Integer.parseInt(
-    grau.replace("(", "").replace(")", "")
-);
-
-for (int j = 0; j < k; j++) {
-    int w = sc.nextInt();
-    adj[v].add(w);
-    ...
-}
-```
-
-Como a entrada já lista cada conexão nas linhas das duas extremidades, a leitura de cada linha monta naturalmente a lista de adjacência do grafo não direcionado: a conexão `0 - 3` aparece em `adj[0]` (linha do servidor `0`) e em `adj[3]` (linha do servidor `3`).
-
-## Conjunto de arestas
-
-Além da lista de adjacência, o programa mantém um conjunto com cada aresta uma única vez:
+Além das listas, o programa guarda cada aresta uma única vez em um conjunto ordenado:
 
 ```java
 TreeSet<String> arestas
 ```
 
-Cada aresta é guardada como `"a b"`, com `a = min(v, w)` e `b = max(v, w)`. Assim:
+Cada aresta é armazenada como `"a b"`, com `a = min(u, w)` e `b = max(u, w)`. As duas ocorrências de uma conexão na entrada geram o mesmo texto, e o `TreeSet` mantém apenas uma. O comparador do `TreeSet` compara os números, primeiro `a` e depois `b`, e não o texto; assim `"2 3"` vem antes de `"10 11"`.
 
-- a conexão lida como `0 3` e como `3 0` vira sempre `"0 3"`, e o `TreeSet` elimina a duplicata;
-- o comparador do `TreeSet` ordena as arestas **numericamente**, primeiro por `a` e depois por `b`.
-
-A ordenação numérica é importante: uma comparação de texto colocaria `"10 11"` antes de `"2 3"`. Com o comparador numérico, as pontes já são encontradas na ordem exigida pela saída.
-
-## Instância utilizada
-
-```text
-5
-0 (3) 1 2 3
-1 (2) 0 2
-2 (2) 0 1
-3 (2) 0 4
-4 (1) 3
-```
-
-Representação:
-
-```text
-       1
-      / \
-     0---2
-     |
-     3
-     |
-     4
-```
-
-Lista de adjacência obtida após a leitura:
-
-```text
-0 -> 1, 2, 3
-1 -> 0, 2
-2 -> 0, 1
-3 -> 0, 4
-4 -> 3
-```
-
-Conjunto de arestas (`TreeSet`), na ordem em que será percorrido:
+Para o grafo do Marco 1, o conjunto percorrido pela solução é:
 
 ```text
 0 1
-0 2
-0 3
-1 2
+1 3
+2 3
+2 4
 3 4
 ```
 
-## Medidas estruturais
+Esse conjunto define a ordem em que cada aresta é testada e, consequentemente, a ordem de impressão das pontes.
 
-Para essa instância:
+## Referências
 
-- Ordem do grafo: `|V| = 5`
-- Tamanho do grafo: `|E| = 5`
-
-Graus dos vértices:
-
-```text
-grau(0) = 3
-grau(1) = 2
-grau(2) = 2
-grau(3) = 2
-grau(4) = 1
-```
-
-Portanto:
-
-- grau máximo = `3`
-- grau mínimo = `1`
-- grau médio = `2`
-
-O grau médio pode ser calculado por:
-
-```text
-2|E| / |V| = 2(5) / 5 = 2
-```
-
-## Densidade
-
-Para um grafo simples e não direcionado:
-
-```text
-D = 2|E| / (|V|(|V| - 1))
-```
-
-Aplicando à instância:
-
-```text
-D = 2(5) / (5(5 - 1))
-D = 10 / 20
-D = 0,5
-```
-
-Portanto, a densidade do grafo é `0,5`, ou 50%.
-
-## Conectividade
-
-A instância é **conexa**: existe caminho entre todos os pares de servidores. Portanto, o grafo original possui **1 componente conexa**.
-
-Esse valor é a referência usada pela solução: uma aresta é ponte quando, ao ser ignorada, o número de componentes passa a ser maior que 1.
-
-## Validação da representação
-
-A lista de adjacência representa corretamente as cinco conexões da instância. Por exemplo:
-
-```text
-0 -> 1, 2, 3
-```
-
-indica que o servidor `0` está conectado aos servidores `1`, `2` e `3`.
-
-A soma dos tamanhos das listas é `3 + 2 + 2 + 2 + 1 = 10 = 2|E|`, pois cada conexão aparece nas listas das suas duas extremidades.
-
-O conjunto de arestas contém exatamente `5` elementos, um para cada conexão.
+A2_Tipos_Representação_Computacional_, de Ricardo Carubbi, sobre lista de adjacência; [Graph do algs4](https://algs4.cs.princeton.edu/41graph/Graph.java.html) como referência de representação; [UVA 796](https://onlinejudge.org/external/7/796.pdf) para leitura das listas.

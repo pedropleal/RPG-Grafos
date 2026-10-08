@@ -1,4 +1,4 @@
-# Marco 3 — Aplicação de DFS na Busca de Pontes
+# Marco 3 — Estruturas e estratégia de DFS
 
 **Problema:** UVA 796 — Critical Links
 
@@ -7,115 +7,103 @@
 - Pedro Pinheiro Barros Leal
 - Emmanuel Rosendo Parente Dias
 
-## Grafo utilizado
+> **Registro da evolução:** a estratégia com `disc[]` e `low[]` descrita nas primeiras seções foi a apresentada inicialmente neste marco e está preservada como registro. Por sugestão do professor, ela foi substituída na implementação final pela remoção temporária de cada aresta seguida de recontagem de componentes com DFS. A mudança está documentada na seção [Mudança de estratégia](#mudança-de-estratégia-remoção-de-arestas--dfs).
 
-```text
-       1
-      / \
-     0---2
-     |
-     3
-     |
-     4
-```
+## Escopo
 
-Lista de adjacência:
+Apresentar as classes de referência e as estruturas previstas para o código, conforme a orientação registrada na conversa GRAFOS. Este marco descreve a estratégia e seu rastreamento manual; não registra uma implementação concluída.
 
-```text
-0 -> 1, 2, 3
-1 -> 0, 2
-2 -> 0, 1
-3 -> 0, 4
-4 -> 3
-```
+## Classes de referência
 
-Nas execuções manuais abaixo, os vizinhos são percorridos na ordem da lista de adjacência.
+| Classe do algs4 | Papel previsto |
+|---|---|
+| Graph | Representar o grafo não direcionado e acessar os vizinhos por adj(v) |
+| DepthFirstPaths | Referência para DFS recursiva, marcação de visitas e registro dos pais |
+| CC | Referência para iniciar uma DFS em cada vértice ainda não visitado, cobrindo todas as componentes |
 
-## Abordagem inicial: DFS com `disc[]` e `low[]`
+`DepthFirstPaths` e `CC` são as referências de adaptação apresentadas nos materiais anteriores. Elas não detectam pontes diretamente. A extensão com `disc`, `low` e o critério de ponte é uma adaptação para o problema, não atribuída aos códigos do professor.
 
-> Esta seção registra a primeira abordagem apresentada neste marco. Ela foi mantida para documentar a evolução da solução, embora não seja a utilizada no código final.
+## Estruturas previstas
 
-A primeira abordagem estudada para encontrar pontes foi uma DFS com dois vetores:
+| Estrutura | Finalidade |
+|---|---|
+| Lista de adjacência | Armazenar os vizinhos de cada vértice |
+| marked[] | Indicar os vértices já visitados |
+| parent[] / edgeTo[] | Registrar o pai na árvore DFS; são alternativas de nome para o mesmo papel |
+| disc[] | Registrar o instante de descoberta |
+| low[] | Menor disc alcançável a partir da subárvore por arestas da árvore seguidas de, no máximo, uma aresta de retorno |
+| Contador de tempo | Numerar as descobertas |
+| Lista de pontes | Guardar os pares de extremos das pontes |
+| Pilha de recursão | Manter as chamadas da DFS em andamento |
 
-- `disc[v]`: tempo de descoberta do vértice `v`;
-- `low[v]`: menor tempo de descoberta alcançável a partir da subárvore de `v`, usando no máximo uma aresta de retorno.
+Esses vetores e estruturas não são classes do algs4. O contador de descoberta também não é o contador de componentes da classe CC.
 
-Durante a DFS, para cada vizinho `w` do vértice `v`:
+## Adaptação prevista
 
-- se `w` não foi visitado, a DFS continua em `w` e, ao retornar, `low[v] = min(low[v], low[w])`;
-- se `w` já foi visitado e não é o pai de `v`, a aresta é de retorno e `low[v] = min(low[v], disc[w])`.
+Ao descobrir v, inicializar disc[v] e low[v] com o tempo corrente. Depois de explorar um filho w, atualizar low[v] com low[w]. Para um vizinho já visitado que não é o pai, considerar disc[w].
 
-Uma aresta da árvore DFS `(v, w)` é ponte quando:
+A aresta da árvore (v,w) é ponte quando **low[w] > disc[v]**. A igualdade significa que há retorno para v e, portanto, não caracteriza ponte. O teste vale também para arestas que saem da raiz; não se usa aqui a regra especial de raiz para vértices de articulação.
 
-```text
-low[w] > disc[v]
-```
+Percorrer todos os vértices e iniciar uma DFS nos ainda não marcados, como em CC. Normalizar os extremos e ordenar os pares encontrados. No modelo simples, ignora-se o vizinho pai; se a implementação vier a admitir arestas paralelas, deverá distinguir a identidade da aresta-pai.
 
-ou seja, quando a subárvore de `w` não tem nenhum caminho alternativo para voltar até `v` ou a um ancestral de `v`.
+## Rastreamento manual do exemplo preservado
 
-### Execução manual
+Usar as listas do [Marco 2](marco-2.md), começando em 0 e contando descobertas a partir de 0.
 
-A DFS começa no vértice `0`, com o tempo iniciando em `1`:
+- Descobertas: 0, 1, 3, 2, 4.
+- Arestas da árvore: (0,1), (1,3), (3,2), (2,4).
+- Retorno de 4 para o ancestral 3: low[4] passa a 2; esse valor se propaga para 2.
+- Finalizações: 4, 2, 3, 1, 0.
 
-```text
-descobre 0 (disc = 1)
-  descobre 1 (disc = 2)
-    0 é pai de 1 -> ignora
-    descobre 2 (disc = 3)
-      0 já visitado e não é pai -> low[2] = min(3, disc[0]) = 1
-      1 é pai de 2 -> ignora
-    retorna a 1: low[1] = min(2, low[2]) = 1
-    aresta 1-2: low[2] = 1 > disc[1] = 2? não
-  retorna a 0: low[0] = min(1, low[1]) = 1
-  aresta 0-1: low[1] = 1 > disc[0] = 1? não
-  2 já visitado -> low[0] = min(1, disc[2]) = 1
-  descobre 3 (disc = 4)
-    0 é pai de 3 -> ignora
-    descobre 4 (disc = 5)
-      3 é pai de 4 -> ignora
-    retorna a 3: low[3] = min(4, low[4]) = 4
-    aresta 3-4: low[4] = 5 > disc[3] = 4? sim -> PONTE
-  retorna a 0: low[0] = min(1, low[3]) = 1
-  aresta 0-3: low[3] = 4 > disc[0] = 1? sim -> PONTE
-```
+| Vértice | Pai | disc | low final |
+|---|---|---|---|
+| 0 | −1 (raiz) | 0 | 0 |
+| 1 | 0 | 1 | 1 |
+| 2 | 3 | 3 | 2 |
+| 3 | 1 | 2 | 2 |
+| 4 | 2 | 4 | 2 |
 
-Tabela final:
+No retorno de 4 para 2, 2>3 é falso. No retorno de 2 para 3, 2>2 é falso. No retorno de 3 para 1, 2>1 identifica (1,3); no retorno de 1 para 0, 1>0 identifica (0,1). A aresta (3,4) está fora da árvore e fecha o ciclo. As únicas pontes são (0,1) e (1,3).
 
-| Vértice | `disc` | `low` |
-|--------:|-------:|------:|
-| 0 | 1 | 1 |
-| 1 | 2 | 1 |
-| 2 | 3 | 1 |
-| 3 | 4 | 4 |
-| 4 | 5 | 5 |
+## Custos previstos
 
-Pontes encontradas: `0 - 3` e `3 - 4`.
+Com V vértices, E arestas e B pontes, a DFS custa O(V+E); ordenar a saída custa O(B log B). O total previsto é O(V+E+B log B). O grafo ocupa O(V+E), os vetores e a pilha O(V), e a lista de pontes O(B). A memória total é O(V+E).
 
-Essa abordagem encontra todas as pontes com uma única DFS, em `O(V + E)`.
+## Mudança de estratégia: remoção de arestas + DFS
 
-## Mudança de abordagem
+Por sugestão do professor, a estratégia com `disc[]` e `low[]` foi substituída por uma estratégia mais simples, construída diretamente sobre a definição do Marco 1:
 
-Por sugestão do professor, a abordagem com `disc[]` e `low[]` foi substituída por uma estratégia mais simples, construída diretamente sobre a definição de ponte:
+> Uma aresta e é ponte se ω(G − e) > ω(G).
 
-> Uma aresta é ponte quando a sua remoção aumenta o número de componentes conexas do grafo.
+Em vez de calcular `disc` e `low`, a solução final **ignora temporariamente cada aresta e reconta as componentes conexas com DFS**, usando a lógica da classe `CC`.
 
 Motivos da mudança:
 
-- a nova estratégia reaproveita a DFS e a contagem de componentes conexas já estudadas na classe `CC.java` do algs4;
+- reaproveita diretamente a DFS e a contagem de componentes de `CC`, já estudadas no material A4_Conectividade;
 - não exige os conceitos adicionais de tempo de descoberta, aresta de retorno e `low`;
-- a correção decorre diretamente da definição de ponte, o que facilita a explicação e a verificação;
-- o custo maior, `O(E · (V + E))`, é suficiente para o problema: a solução recebeu **Accepted** no UVA 796.
+- a correção decorre diretamente da definição de ponte, o que facilita explicar e verificar a solução;
+- o custo maior, O(E·(V+E)), foi suficiente para o problema: a solução recebeu Accepted no UVA 796 (ver [Marco 4](marco-4.md)).
 
-## Estratégia adotada: ignorar cada aresta e recontar componentes
+### Estruturas usadas na estratégia final
 
-O algoritmo:
+| Estrutura | Finalidade |
+|---|---|
+| Lista de adjacência `adj[]` | Vizinhos de cada vértice |
+| `marked[]` | Vértices já visitados na contagem atual (como em `CC`) |
+| `count` | Quantidade de componentes conexas (como em `CC`) |
+| Conjunto de arestas | Cada aresta uma única vez, em ordem crescente |
+| Lista de pontes | Arestas cuja remoção aumentou `count` |
 
-1. conta as componentes conexas do grafo original;
-2. para cada aresta `(a, b)` do conjunto de arestas:
-   1. executa novamente a contagem, mas a DFS ignora a aresta `(a, b)`;
-   2. se a quantidade de componentes aumentou, `(a, b)` é ponte.
+Deixam de ser necessários: `parent[]`, `disc[]`, `low[]` e o contador de tempo.
 
-Na DFS, a aresta é ignorada nos dois sentidos:
+### Algoritmo
+
+1. Contar as componentes do grafo original: `original = contarComponentes(n, -1, -1)`. Os valores `-1` não correspondem a nenhum vértice, então nenhuma aresta é ignorada.
+2. Para cada aresta `(a, b)` do conjunto, em ordem crescente:
+   1. contar as componentes com a DFS ignorando `(a, b)` nos dois sentidos;
+   2. se o resultado for maior que `original`, `(a, b)` é ponte.
+
+Na DFS, a aresta testada é ignorada assim:
 
 ```java
 if ((v == a && w == b) ||
@@ -124,66 +112,64 @@ if ((v == a && w == b) ||
 }
 ```
 
-Para a contagem original, o programa usa `a = -1` e `b = -1`, valores que não correspondem a nenhum vértice. Assim, nenhuma aresta é ignorada.
+### Rastreamento manual do exemplo preservado
 
-### Contagem original
+Listas de adjacência (Marco 2):
+
+```text
+0 -> 1
+1 -> 0, 3
+2 -> 3, 4
+3 -> 1, 2, 4
+4 -> 2, 3
+```
+
+Contagem original, a partir do vértice 0:
 
 ```text
 dfs(0): marca 0
   w = 1 -> dfs(1): marca 1
     w = 0 já marcado
-    w = 2 -> dfs(2): marca 2
-      w = 0 já marcado
+    w = 3 -> dfs(3): marca 3
       w = 1 já marcado
-  w = 2 já marcado
-  w = 3 -> dfs(3): marca 3
-    w = 0 já marcado
-    w = 4 -> dfs(4): marca 4
-      w = 3 já marcado
+      w = 2 -> dfs(2): marca 2
+        w = 3 já marcado
+        w = 4 -> dfs(4): marca 4
+          w = 2 já marcado
+          w = 3 já marcado
+      w = 4 já marcado
 ```
 
-Todos os vértices foram marcados a partir de `0`. Portanto:
+Todos os vértices são marcados na primeira DFS: `original = 1`.
 
-```text
-original = 1 componente
-```
+Teste de cada aresta:
 
-### Remoção de cada aresta
+| Aresta ignorada | DFS iniciadas e vértices marcados | Componentes | Ponte? |
+|:---:|---|:---:|:---:|
+| (0,1) | dfs(0): {0}; dfs(1): {1, 3, 2, 4} | 2 | **sim** |
+| (1,3) | dfs(0): {0, 1}; dfs(2): {2, 3, 4} | 2 | **sim** |
+| (2,3) | dfs(0): {0, 1, 3, 4, 2} | 1 | não |
+| (2,4) | dfs(0): {0, 1, 3, 2, 4} | 1 | não |
+| (3,4) | dfs(0): {0, 1, 3, 2, 4} | 1 | não |
 
-| Aresta ignorada | Vértices alcançados a partir de `0` | Componentes | Ponte? |
-|:---------------:|:------------------------------------|:-----------:|:------:|
-| `0 - 1` | 0, 2, 1, 3, 4 | 1 | não |
-| `0 - 2` | 0, 1, 2, 3, 4 | 1 | não |
-| `0 - 3` | 0, 1, 2 | 2 (`{0, 1, 2}` e `{3, 4}`) | **sim** |
-| `1 - 2` | 0, 1, 2, 3, 4 | 1 | não |
-| `3 - 4` | 0, 1, 2, 3 | 2 (`{0, 1, 2, 3}` e `{4}`) | **sim** |
+Ao ignorar (0,1), o único vizinho de 0 é descartado e a primeira DFS marca apenas {0}. O laço de `CC` inicia então uma nova DFS em 1, que alcança os demais vértices. Ao ignorar (2,3), o vértice 2 continua alcançável por 3 → 4 → 2, pois está no triângulo.
 
-Ao ignorar `0 - 1`, o vértice `1` ainda é alcançado pelo caminho `0 -> 2 -> 1`. O mesmo ocorre com as demais arestas do ciclo `0 - 1 - 2`.
-
-Ao ignorar `0 - 3`, a DFS a partir de `0` não alcança `3`. O laço da contagem inicia uma nova DFS em `3`, que alcança `4`, formando a segunda componente.
-
-### Resultado
+Resultado:
 
 ```text
 2 critical links
-0 - 3
-3 - 4
+0 - 1
+1 - 3
 
 ```
 
-O resultado é o mesmo da abordagem com `disc[]` e `low[]`, e foi confirmado executando o `Main.java` em Java 8 (CASO 9 de [`../dados/casos-de-teste.txt`](../dados/casos-de-teste.txt)).
+As pontes são as mesmas encontradas pelo rastreamento com `disc` e `low`: (0,1) e (1,3).
 
-## Relação com a implementação de referência
+### Custos da estratégia final
 
-A classe `CC.java` do algs4 conta componentes conexas com:
+Cada contagem custa O(V+E), e ela é feita uma vez para o grafo original e uma vez para cada uma das E arestas. O tempo total é O(E·(V+E)); a memória continua O(V+E). A implementação, os testes e o resultado no juiz estão no [Marco 4](marco-4.md).
 
-- `marked[]`, que indica os vértices já visitados;
-- uma DFS recursiva que marca todos os vértices alcançáveis;
-- um laço sobre todos os vértices que inicia uma nova DFS em cada vértice ainda não marcado, incrementando `count`.
+## Referências
 
-O `Main.java` mantém essa mesma lógica em `dfs` e `contarComponentes`. As adaptações foram:
-
-- a DFS recebe dois parâmetros extras, `a` e `b`, para ignorar a aresta testada;
-- não são usados os vetores `id[]` e `size[]` da `CC.java`, pois a solução precisa apenas da quantidade de componentes;
-- o grafo é representado por um vetor de `ArrayList<Integer>` em vez da classe `Graph` do algs4;
-- a contagem é repetida uma vez para cada aresta.
+- Ricardo Carubbi: A2_Tipos_Representação_Computacional_ (representação), A3_BFS_DFS (marked, edgeTo e DepthFirstPaths) e A4_Conectividade (componentes e CC).
+- [Graph](https://algs4.cs.princeton.edu/41graph/Graph.java.html), [DepthFirstPaths](https://algs4.cs.princeton.edu/41graph/DepthFirstPaths.java.html) e [CC](https://algs4.cs.princeton.edu/41graph/CC.java.html), de Sedgewick e Wayne.

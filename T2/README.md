@@ -1,236 +1,225 @@
-# T2 — Critical Links (UVA 796)
+# T2 — UVA 796: Critical Links
+
+## Problema e situação do trabalho
+
+Identificar as pontes de uma rede não direcionada: arestas cuja remoção aumenta o número de componentes conexas. O trabalho mantém o exemplo do grupo, `0–1–3` com o triângulo `3–2–4–3`.
+
+A estratégia final **ignora temporariamente cada aresta e reconta as componentes conexas com DFS**, seguindo a lógica da classe `CC` do algs4. A DFS com `disc`/`low`, estudada inicialmente no Marco 3, foi substituída por sugestão do professor.
+
+A solução recebeu **Accepted** no UVA 796 pelo VJudge (RunID 31332405, Java 8, 990 ms). Ainda é preciso conferir na submissão se o código enviado é exatamente o de [`src/Main.java`](src/Main.java) e adicionar o print do resultado.
 
 ## Integrantes
 
 - Pedro Pinheiro Barros Leal
 - Emmanuel Rosendo Parente Dias
 
-## Problema
-
-O problema escolhido para o T2 foi o **UVA 796 — Critical Links**.
-
-Uma rede é formada por `n` servidores e por conexões entre eles. Uma conexão é **crítica** quando a sua remoção desconecta servidores que antes conseguiam se comunicar.
-
-O objetivo é encontrar todas as conexões críticas da rede. Em termos de grafos, isso significa encontrar todas as **pontes** de um grafo não direcionado.
-
 ## Linguagem
 
-A linguagem utilizada é **Java 8**.
+**Java 8**, mantendo a linguagem do T1 e as implementações de referência disponibilizadas na disciplina, principalmente `CC` (material A4_Conectividade). `Graph` e `DepthFirstPaths` (material A3_BFS_DFS) são as referências para a representação e para a DFS.
 
-## Entrada
+## Execução
 
-A entrada contém vários casos de teste e termina no fim do arquivo (EOF).
-
-Cada caso começa com o número de servidores `n`. Em seguida, vêm `n` linhas no formato:
+A solução está em [src/Main.java](src/Main.java), em um único arquivo e sem dependências externas. Requer um JDK. A partir da pasta `T2`, compilar:
 
 ```text
-u (k) v1 v2 ... vk
+javac -encoding UTF-8 -d build src/Main.java
 ```
 
-onde `u` é o servidor, `k` é a quantidade de conexões dele e `v1 ... vk` são os servidores conectados a `u`. Os servidores são numerados de `0` a `n - 1`.
-
-## Saída
-
-Para cada caso, o programa deve imprimir:
+Em bash ou cmd, executar:
 
 ```text
-X critical links
-a - b
-...
+java -cp build Main < dados/entrada.txt
 ```
 
-- `X` é a quantidade de conexões críticas;
-- cada conexão aparece com o menor vértice primeiro (`a < b`);
-- as conexões aparecem em ordem crescente;
-- cada caso termina com uma linha em branco.
+Em PowerShell:
 
-## Como executar
-
-O código principal está em:
-
-```text
-T2/src/Main.java
+```powershell
+Get-Content dados/entrada.txt | java -cp build Main
 ```
 
-Esse é o código submetido ao VJudge que recebeu Accepted.
+O programa lê casos até EOF e escreve na saída padrão. [entrada.txt](dados/entrada.txt) contém somente dados de entrada; [saida-esperada.txt](dados/saida-esperada.txt) contém o resultado completo. O catálogo comentado está em [casos-de-teste.txt](dados/casos-de-teste.txt).
 
-A partir da pasta `T2/src`, para compilar:
-
-```bash
-javac Main.java
-```
-
-Para executar:
-
-```bash
-java Main
-```
-
-Para executar com um arquivo de entrada:
-
-```bash
-java Main < entrada.txt
-```
-
-Exemplo de entrada:
-
-```text
-8
-0 (1) 1
-1 (3) 2 0 3
-2 (2) 1 3
-3 (3) 1 2 4
-4 (1) 3
-7 (1) 6
-6 (1) 7
-5 (0)
-
-0
-```
-
-Saída esperada:
-
-```text
-3 critical links
-0 - 1
-3 - 4
-6 - 7
-
-0 critical links
-
-```
-
-Outros casos de teste estão em [`dados/casos-de-teste.txt`](dados/casos-de-teste.txt).
+Para repetir os testes com Python 3: `python testes/validar.py`. Se o JDK não estiver no PATH, informar `--java CAMINHO_JAVA --javac CAMINHO_JAVAC`. O script funciona com o JDK 8 e com JDKs mais novos (neste caso, compila com `--release 8`). Python serve somente como ferramenta de teste.
 
 ## Modelagem
 
-A rede foi modelada como um grafo:
+Os servidores são vértices numerados de 0 a n−1, e as conexões bidirecionais são arestas. O grafo é não direcionado, não ponderado e pode ter várias componentes conexas. A representação é uma lista de adjacência.
 
-- **Vértices:** servidores;
-- **Arestas:** conexões entre os servidores;
-- **Conexão crítica:** ponte do grafo.
+Exemplo do grupo:
 
-O grafo é:
+```text
+        0
+        |
+        1
+        |
+        3
+       / \
+      2---4
 
-- não direcionado, porque as conexões funcionam nos dois sentidos;
-- não ponderado, porque as conexões não têm custo associado;
-- possivelmente desconexo, porque a rede pode ter servidores ou grupos isolados.
+V = {0, 1, 2, 3, 4}
+E = {(0,1), (1,3), (2,3), (3,4), (2,4)}
+```
 
-## Estratégia adotada
+## Propriedade estrutural
 
-A estratégia final se baseia na definição de ponte:
+Uma aresta e é ponte quando sua remoção aumenta o número de componentes conexas: **ω(G − e) > ω(G)**. No exemplo, as pontes são (0,1) e (1,3). As arestas do triângulo não são pontes porque têm caminhos alternativos.
 
-> Uma aresta é ponte quando a sua remoção aumenta o número de componentes conexas do grafo.
+A solução final testa essa definição diretamente, aresta por aresta.
 
-O algoritmo:
+## Algoritmo
 
-1. conta as componentes conexas do grafo original com DFS;
-2. para cada aresta `(a, b)`:
-   1. ignora temporariamente a aresta;
-   2. reconta as componentes conexas com DFS;
-   3. se a quantidade aumentou, a aresta é uma ponte;
-3. ordena as pontes encontradas e imprime o resultado.
+1. Contar as componentes conexas do grafo original com DFS: `original = contarComponentes(n, -1, -1)`.
+2. Para cada aresta `(a, b)`, em ordem crescente:
+   1. contar novamente as componentes, com a DFS ignorando `(a, b)` nos dois sentidos;
+   2. se a contagem for maior que `original`, `(a, b)` é ponte.
+3. Imprimir a quantidade de pontes, cada ponte no formato `a - b` e uma linha em branco.
+
+As arestas ficam em um `TreeSet`, normalizadas com o menor extremo primeiro e comparadas numericamente. Por isso as pontes já são encontradas na ordem exigida pela saída.
+
+O [Marco 3](acompanhamento/marco-3.md) registra o rastreamento manual do exemplo. O [Marco 4](acompanhamento/marco-4.md) explica os trechos do código.
 
 ## Implementação de referência
 
-A estratégia se baseia principalmente na lógica de DFS e contagem de componentes da classe `CC.java` do algs4, disponibilizada pelo professor Ricardo Carubbi.
+| Referência | Uso na adaptação |
+|---|---|
+| CC — A4 | DFS recursiva com `marked[]`, laço sobre todos os vértices e contador `count` |
+| Graph | Representação por adjacência e acesso aos vizinhos |
+| DepthFirstPaths — A3 | Exploração em profundidade e marcação de visitados |
 
-Da `CC.java` foram reaproveitados:
+Essas classes orientaram a adaptação, sem cópia integral nem importação de algs4. A estratégia se baseia principalmente na lógica de DFS e contagem de componentes da classe `CC.java`, disponibilizada pelo professor Ricardo Carubbi.
 
-- o vetor `marked[]`, que indica os vértices já visitados;
-- a DFS recursiva que marca todos os vértices alcançáveis;
-- o laço sobre todos os vértices que inicia uma nova DFS em cada vértice não marcado e incrementa `count`.
+A solução **não usa bibliotecas externas nem funções que resolvam automaticamente o problema**. As coleções, a leitura e a ordenação usam apenas a biblioteca padrão de Java. O código implementa explicitamente a busca e o teste de ponte.
 
-Adaptações feitas no `Main.java`:
+## Alterações em relação às referências
+
+A adaptação está detalhada no [Marco 4](acompanhamento/marco-4.md) e inclui:
 
 - a DFS recebe os parâmetros `a` e `b` e ignora a aresta `(a, b)` nos dois sentidos;
 - a contagem original usa `a = -1` e `b = -1`, para não ignorar nenhuma aresta;
-- não são usados `id[]` e `size[]`, pois basta a quantidade de componentes;
-- o grafo é um vetor de `ArrayList<Integer>` em vez da classe `Graph` do algs4;
-- as arestas são guardadas uma única vez em um `TreeSet`, como `"a b"` com `a < b`, com comparador numérico. Assim, as pontes já são encontradas na ordem exigida pela saída;
-- a leitura segue o formato `u (k) v1 ... vk` do problema.
+- não são usados `id[]` e `size[]` de `CC`, pois basta a quantidade de componentes;
+- o grafo é um vetor de `ArrayList<Integer>`, em vez da classe `Graph`;
+- interpretar linhas `u (k) ...`, processar múltiplos casos e reinicializar o estado a cada caso;
+- guardar cada aresta uma única vez em um `TreeSet`, com comparador numérico;
+- repetir a contagem de componentes para cada aresta e imprimir o formato exigido.
 
 ## Evolução da solução
 
-A primeira abordagem estudada foi a DFS com os vetores `disc[]` e `low[]`, apresentada no Marco 3.
+A primeira estratégia, apresentada no [Marco 3](acompanhamento/marco-3.md), foi a DFS com `disc[]` e `low[]`, que detecta as pontes em uma única passagem pelo grafo pelo critério `low[w] > disc[v]`. Uma versão com essa estratégia e pilha explícita chegou a ser implementada (commit `04f7a3e`) e está preservada no histórico do Git.
 
-Por sugestão do professor, essa abordagem foi substituída por uma mais simples: ignorar cada aresta e recontar as componentes conexas. Essa estratégia reaproveita diretamente a DFS e a contagem de componentes já estudadas, sem exigir os conceitos adicionais de tempo de descoberta e *low-link*.
+Por sugestão do professor, ela foi substituída por uma estratégia mais simples, baseada diretamente na definição de ponte: ignorar cada aresta e verificar se o número de componentes aumenta. Essa estratégia:
 
-O registro da abordagem inicial foi mantido em [`acompanhamento/marco-3.md`](acompanhamento/marco-3.md).
+- reaproveita diretamente a DFS e a contagem de componentes de `CC`;
+- não exige os conceitos de tempo de descoberta, aresta de retorno e `low`;
+- tem correção que decorre diretamente da definição de ponte;
+- foi suficiente para o problema, com Accepted no UVA 796.
+
+## Justificativas
+
+A lista de adjacência permite armazenar e percorrer apenas as conexões presentes. A DFS com contagem de componentes, já estudada em `CC`, resolve diretamente a pergunta "remover esta aresta aumenta o número de componentes?". A cobertura de todas as componentes é necessária porque a entrada pode ser desconexa.
 
 ## Complexidade
 
-Com lista de adjacência, cada contagem de componentes por DFS custa:
+Considerando V vértices e E arestas:
 
-```text
-O(V + E)
-```
+| Etapa ou estrutura | Custo |
+|---|---|
+| Leitura e conjunto de arestas (`TreeSet`) | O(E log E) tempo |
+| Uma contagem de componentes por DFS | O(V+E) tempo |
+| Contagem original + uma por aresta | O((E+1)·(V+E)) tempo |
+| **Tempo total** | **O(E·(V+E))** |
+| Lista de adjacência | O(V+E) memória |
+| `marked[]` e pilha de recursão | O(V) memória |
+| Conjunto de arestas e lista de pontes | O(E) memória |
+| **Memória total** | **O(V+E)** |
 
-Como a contagem é repetida uma vez para cada aresta, a complexidade total de tempo é:
+A abordagem com `disc`/`low` custaria O(V+E+B log B), com B pontes. A estratégia adotada é mais custosa, mas foi suficiente para o problema.
 
-```text
-O(E · (V + E))
-```
+## Casos especiais e validação
 
-onde:
+Testes executados localmente com **Eclipse Temurin 1.8.0_504** (`javac` e `java`), sobre a versão final de `Main.java`. Detalhes em [testes/resultado-local.md](testes/resultado-local.md).
 
-- `V` é a quantidade de vértices (servidores);
-- `E` é a quantidade de arestas (conexões).
+| Verificação | Resultado |
+|---|---|
+| Catálogo do grupo, 6 redes (`entrada.txt` × `saida-esperada.txt`) | ✅ idêntico |
+| Catálogo comentado, 11 casos ([casos-de-teste.txt](dados/casos-de-teste.txt)) | ✅ 11/11 |
+| Amostra oficial UVA | ✅ idêntico |
+| Entrada vazia | ✅ nenhuma saída |
+| 1.100 grafos simples exaustivos, 0 a 5 vértices | ✅ concordância com o oráculo |
+| 300 grafos aleatórios, semente 796 | ✅ concordância com o oráculo |
 
-A abordagem com `disc[]` e `low[]` resolveria o problema em `O(V + E)`, mas a estratégia adotada foi suficiente para as restrições do problema, como mostra o resultado abaixo.
+As comparações verificam o texto completo, inclusive a linha em branco ao final de cada caso. O oráculo, usado só nos testes, foi escrito em Python de forma independente do código Java.
 
-## Testes
+Cuidados verificados: n=0 não encerra a leitura; vértices isolados são considerados; a ordem das linhas não determina o identificador do vértice; as pontes saem com `a < b` e em ordem numérica; cada caso termina com uma linha em branco.
 
-Os casos de teste estão em [`dados/casos-de-teste.txt`](dados/casos-de-teste.txt) e foram executados localmente com o `Main.java`:
+Limitações conhecidas da versão final:
 
-- compilação: `javac 1.8.0_504` (Eclipse Temurin);
-- execução: `java 1.8.0_504` (Eclipse Temurin).
+- **Arestas paralelas:** cada par é guardado uma única vez. Com uma conexão `0–1` duplicada, `0 - 1` é apontada como ponte. O modelo adotado nos marcos é de grafo simples.
+- **Recursão profunda:** a DFS é recursiva. Um caminho com 100.000 vértices gerou `StackOverflowError` localmente.
 
-As saídas foram comparadas exatamente com as esperadas, incluindo a linha em branco ao final de cada caso. As quebras de linha `\r\n` geradas no Windows foram convertidas para `\n` antes da comparação.
+Essas limitações não impediram o Accepted. Na compilação com `-Xlint:all`, o `javac` emite apenas os avisos `rawtypes` e `unchecked` em `adj = new ArrayList[n];`, sem efeito na execução.
 
-| Caso | Descrição | Resultado |
-|:----:|---|:---:|
-| 1 | Exemplo do enunciado (dois casos na mesma entrada) | ✅ passou |
-| 2 | Grafo sem vértices (`n = 0`) | ✅ passou |
-| 3 | Ciclo (triângulo): nenhuma ponte | ✅ passou |
-| 4 | Caminho (árvore): todas as arestas são pontes | ✅ passou |
-| 5 | Somente vértices isolados | ✅ passou |
-| 6 | Dois ciclos ligados por uma única aresta | ✅ passou |
-| 7 | Estrela com linhas fora de ordem (ordenação e `a < b`) | ✅ passou |
-| 8 | Uma única aresta | ✅ passou |
-| 9 | Exemplo de 5 vértices usado nos marcos | ✅ passou |
-
-**Resultado: 9 de 9 casos passaram.**
-
-A compilação gera apenas um aviso de conversão não verificada em `adj = new ArrayList[n];`, comum ao criar vetores de listas genéricas em Java, sem efeito na execução.
-
-## Resultado
+## Resultado no juiz
 
 | Item | Valor |
 |---|---|
 | Plataforma | VJudge |
 | Problema | UVA 796 — Critical Links |
-| Linguagem | Java 1.8.0 |
+| Linguagem | Java 8 (Java 1.8.0) |
 | Veredito | **Accepted** |
 | Tempo | 990 ms |
 | RunID remoto | 31332405 |
 
-> **Pendente:** adicionar o print em `evidencias/`.
+**Pendências:**
 
-## Estrutura
+- conferir na submissão do VJudge se o código do RunID 31332405 é exatamente o de [`src/Main.java`](src/Main.java);
+- adicionar o print do resultado em `evidencias/`. A pasta contém apenas `.gitkeep`. A evidência do T1 refere-se a outro problema e não comprova o T2.
+
+## Organização
 
 ```text
 T2/
 ├── README.md
+├── .gitattributes
+├── .gitignore
 ├── acompanhamento/
 │   ├── marco-1.md
 │   ├── marco-2.md
 │   ├── marco-3.md
 │   └── marco-4.md
-├── apresentacao/        (pendente: apresentação do T2)
+├── apresentacao/
+│   └── .gitkeep
 ├── dados/
-│   └── casos-de-teste.txt
-├── evidencias/          (pendente: print do Accepted)
-└── src/
-    └── Main.java
+│   ├── casos-de-teste.txt
+│   ├── entrada.txt
+│   └── saida-esperada.txt
+├── evidencias/
+│   └── .gitkeep
+├── src/
+│   └── Main.java
+└── testes/
+    ├── resultado-local.md
+    └── validar.py
 ```
+
+As pastas `evidencias/` e `apresentacao/` permanecem reservadas para o print real do juiz e para a apresentação. Os arquivos compilados ficam em `build/`, ignorado pelo Git.
+
+## Acompanhamento
+
+- [Marco 1 — Modelagem](acompanhamento/marco-1.md)
+- [Marco 2 — Representação computacional](acompanhamento/marco-2.md)
+- [Marco 3 — Estruturas e estratégia de DFS](acompanhamento/marco-3.md): estratégia inicial com `disc`/`low` e mudança para remoção de arestas + DFS
+- [Marco 4 — Implementação final e conclusão](acompanhamento/marco-4.md)
+- [Casos de teste e resultados esperados](dados/casos-de-teste.txt)
+
+## Base da revisão
+
+Documentação consolidada a partir da conversa GRAFOS, do texto anterior do Marco 3 e dos materiais de Ricardo Carubbi: A2_Tipos_Representação_Computacional_, A3_BFS_DFS e A4_Conectividade. As decisões preservadas são lista de adjacência, DFS, cobertura de todas as componentes e as referências `Graph`, `DepthFirstPaths` e `CC`. A estratégia de pontes passou de `disc`/`low` para remoção de arestas + recontagem de componentes, por sugestão do professor.
+
+O trabalho contou com apoio de IA para organização, testes e documentação. Os integrantes deverão revisar e compreender o código e suas adaptações.
+
+## Referências
+
+- [Enunciado oficial UVA 796](https://onlinejudge.org/external/7/796.pdf)
+- [Graph — algs4](https://algs4.cs.princeton.edu/41graph/Graph.java.html)
+- [DepthFirstPaths — algs4](https://algs4.cs.princeton.edu/41graph/DepthFirstPaths.java.html)
+- [CC — algs4](https://algs4.cs.princeton.edu/41graph/CC.java.html)

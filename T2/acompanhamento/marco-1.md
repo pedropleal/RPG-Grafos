@@ -9,105 +9,44 @@
 
 ## Problema
 
-O problema escolhido foi o **Critical Links**, da plataforma UVA (problema 796).
+No UVA 796 — Critical Links, servidores são vértices e conexões bidirecionais são arestas. O objetivo é encontrar todas as pontes. Formalmente, uma aresta e é ponte se ω(G − e) > ω(G), onde ω conta componentes conexas.
 
-Existe uma rede formada por `n` servidores ligados por conexões. Uma conexão é **crítica** quando, ao ser removida, faz com que dois servidores que antes conseguiam se comunicar deixem de conseguir.
+O grafo é não direcionado e não ponderado. Adota-se a modelagem de grafo simples do exemplo anterior. A rede pode ser desconexa; não existe um par fixo de origem e destino para resolver o problema.
 
-O objetivo é identificar todas as conexões críticas da rede.
+## Entrada e saída
 
-## Entrada
+Cada caso começa com n, seguido de n linhas no formato `u (k) v1 ... vk`. Os vértices vão de 0 a n−1, e as linhas podem estar fora de ordem. Ler casos até o fim da entrada; n=0 é uma rede vazia, não um terminador.
 
-A entrada contém vários casos de teste e termina no fim do arquivo (EOF).
+A saída informa `B critical links` e os pares `u - v`, com o menor extremo primeiro, em ordem crescente pelo primeiro e depois pelo segundo extremo. Após cada caso, imprimir uma linha em branco.
 
-Cada caso começa com uma linha contendo:
-
-- `n`: número de servidores.
-
-As próximas `n` linhas têm o formato:
+## Instância preservada
 
 ```text
-u (k) v1 v2 ... vk
+        0
+        |
+        1
+        |
+        3
+       / \
+      2---4
+
+V = {0, 1, 2, 3, 4}
+E = {(0,1), (1,3), (2,3), (3,4), (2,4)}
 ```
 
-onde:
+A instância é conexa. Remover (0,1) separa {0} de {1,2,3,4}; remover (1,3) separa {0,1} de {2,3,4}. Em ambos os casos, o número de componentes passa de 1 para 2. No triângulo, cada aresta tem um caminho alternativo, portanto sua remoção mantém a conectividade.
 
-- `u` é o número do servidor;
-- `k` é a quantidade de conexões de `u`;
-- `v1 ... vk` são os servidores conectados a `u`.
-
-Os servidores são numerados de `0` até `n - 1`. Cada conexão aparece duas vezes na entrada: na linha de cada uma das suas extremidades.
-
-## Saída
-
-Para cada caso de teste, deve ser exibido:
-
-- a quantidade de conexões críticas, no formato `X critical links`;
-- uma linha `a - b` para cada conexão crítica, com `a < b`;
-- as conexões em ordem crescente, primeiro pelo vértice `a` e depois pelo vértice `b`;
-- uma linha em branco ao final do caso.
-
-## Modelagem como grafo
-
-A rede foi modelada como um grafo:
-
-- **Vértices:** representam os servidores;
-- **Arestas:** representam as conexões entre servidores;
-- **Conexão crítica:** representa uma **ponte** do grafo.
-
-Uma **ponte** é uma aresta cuja remoção aumenta o número de componentes conexas do grafo.
-
-O grafo é:
-
-- **não direcionado**, porque uma conexão permite comunicação nos dois sentidos;
-- **não ponderado**, porque as conexões não possuem custo;
-- **possivelmente desconexo**, porque a rede pode conter servidores ou grupos isolados.
-
-## Instância utilizada
-
-Nos marcos foi utilizada a seguinte instância com 5 servidores:
-
-```text
-5
-0 (3) 1 2 3
-1 (2) 0 2
-2 (2) 0 1
-3 (2) 0 4
-4 (1) 3
-```
-
-Conexões da instância:
-
-```text
-0 - 1
-0 - 2
-0 - 3
-1 - 2
-3 - 4
-```
-
-Representação:
-
-```text
-       1
-      / \
-     0---2
-     |
-     3
-     |
-     4
-```
-
-As conexões `0 - 1`, `0 - 2` e `1 - 2` formam um ciclo. Por isso, nenhuma delas é crítica: se uma for removida, os servidores continuam ligados pelas outras duas.
-
-Já as conexões `0 - 3` e `3 - 4` não fazem parte de nenhum ciclo. Se `0 - 3` for removida, os servidores `3` e `4` ficam separados dos demais. Se `3 - 4` for removida, o servidor `4` fica isolado.
-
-Saída esperada para essa instância:
+Resultado esperado por análise manual:
 
 ```text
 2 critical links
-0 - 3
-3 - 4
+0 - 1
+1 - 3
 
 ```
 
-Essa instância está registrada como **CASO 9** em [`../dados/casos-de-teste.txt`](../dados/casos-de-teste.txt).
+Esse resultado foi confirmado executando o `Main.java` final (CASO 1 de [`../dados/casos-de-teste.txt`](../dados/casos-de-teste.txt)).
+
+## Referências
+
+[Enunciado oficial](https://onlinejudge.org/external/7/796.pdf) e material A4_Conectividade, de Ricardo Carubbi, sobre componentes conexas. O exemplo acima é o exemplo do grupo, não a amostra oficial do juiz.
