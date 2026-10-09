@@ -6,13 +6,11 @@ public class Main {
     static boolean[] marked;
     static int count;
 
-    // DFS baseada na classe CC.java do algs4
     static void dfs(int v, int a, int b) {
         marked[v] = true;
 
         for (int w : adj[v]) {
 
-            // Ignora temporariamente a aresta (a,b)
             if ((v == a && w == b) ||
                 (v == b && w == a)) {
                 continue;
@@ -24,7 +22,6 @@ public class Main {
         }
     }
 
-    // Conta as componentes conexas
     static int contarComponentes(int n, int a, int b) {
         marked = new boolean[n];
         count = 0;
